@@ -1,25 +1,27 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import Home from './Routes/Home';
+import Tv from './Routes/Tv';
+import Search from './Routes/Search';
+import Header from './Components/Header';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <Header />
+      <Switch>
+        <Route path="/tv">
+          <Tv />
+        </Route>
+        <Route path="/search">
+          <Search />
+        </Route>
+        {/* 이 root경로를 젤 마지막에 넣어줘야함 */}
+        <Route path="/">
+          <Home />
+        </Route> 
+      </Switch>
+    </>
   );
 }
 
