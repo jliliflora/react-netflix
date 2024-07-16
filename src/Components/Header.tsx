@@ -1,16 +1,16 @@
 import styled from "styled-components";
-import {motion} from "framer-motion";
+import {motion, useAnimation, useViewportScroll} from "framer-motion";
 import { Link, useRouteMatch } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const Nav = styled.nav`
+const Nav = styled(motion.nav)`
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: fixed;
   width: 100%;
   top: 0;
-  background-color: black;
+  // background-color: black;
   font-size: 14px;
   padding: 20px 60px;
   color: white;
@@ -86,16 +86,27 @@ const Circle = styled(motion.span)`
 `;
 
 const Input = styled(motion.input)`
-    /* color: white;
-    display: flex;
-    align-items: center;
-    svg {
-        height: 25px;
-    } */
     transform-origin: right center;
     position: absolute;
-    left: -150px;
+    /* left: -150px; */
+    right: 0px;
+    padding: 5px 10px;
+    padding-left: 40px;
+    z-index: -1;
+    color: white;
+    font-size: 16px;
+    background-color: transparent;
+    border: 1px solid ${(props) => props.theme.white.lighter};
 `;
+
+const navVariants = {
+  top: {
+    backgroundColor:"rgba(0, 0, 0, 0)"
+  },
+  scroll: {
+    backgroundColor:"rgba(0, 0, 0, 1)"
+  },
+}
 
 function Header() {
     const [searchOpen, setSearchOpen] = useState(false);
@@ -103,10 +114,41 @@ function Header() {
     const tvMatch = useRouteMatch("/tv");
     // console.log(homeMatch, tvMatch);
     // const openSearch = () => setSearchOpen(true);
-    const toggleSearch = () => setSearchOpen((prev) => !prev);
-    console.log(searchOpen);
+    const inputAnimation = useAnimation();
+    const navAnimation = useAnimation();
+    const toggleSearch = () => {
+      if(searchOpen) {
+        // trigger the close animation
+        inputAnimation.start({
+          scaleX: 0,
+        });
+      } else {
+        // trigger the open anim
+        inputAnimation.start({scaleX: 1});
+      }
+      setSearchOpen((prev) => !prev);
+    };
+    // console.log(searchOpen);
+
+    // 스크롤Y좌표값 구하는 코드
+    const { scrollY } = useViewportScroll();
+    useEffect(() => {
+      // scrollY.onChange(() => console.log(scrollY.get()));
+      scrollY.onChange(() => {
+        if(scrollY.get() > 80) {
+          navAnimation.start("scroll");
+        } else {
+          navAnimation.start("top");
+        }
+      });
+    }, [scrollY, navVariants])
+
   return (
-    <Nav>
+    <Nav 
+      variants={navVariants}
+      animate={navAnimation}
+      initial={"top"}
+    >
       <Col>
         <Logo
             variants={logoVariants}
@@ -132,7 +174,7 @@ function Header() {
         <Search>
           <motion.svg
             onClick={toggleSearch}
-            animate={{ x: searchOpen ? -180 : 0 }}
+            animate={{ x: searchOpen ? -213 : 0 }}
             transition={{ type:"linear" }}
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -145,7 +187,8 @@ function Header() {
             ></path>
           </motion.svg>
           <Input 
-            animate={{ scaleX: searchOpen ? 1 : 0 }} 
+            animate={inputAnimation}
+            initial={{ scaleX: 0 }}
             transition={{ type:"linear" }}
             placeholder="Search for moive or tv show ..." 
         />
