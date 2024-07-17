@@ -2,7 +2,7 @@ import { useQuery } from "react-query";
 import { getMovies, IGetMoviesResult } from "./api";
 import styled from "styled-components";
 import { makeImagePath } from "./utils";
-import { AnimatePresence, delay, motion } from "framer-motion";
+import { AnimatePresence, delay, motion, useViewportScroll } from "framer-motion";
 import { useState } from "react";
 import { hover } from "@testing-library/user-event/dist/hover";
 import { useHistory, useRouteMatch } from "react-router-dom";
@@ -84,6 +84,24 @@ const Info = styled(motion.div)`
   }
 `;
 
+const Overlay = styled(motion.div)`
+    position: fixed; //스크롤을 내리면 오버레이가 안된 부분이 생겨서 fixed로 해줌
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+`;
+
+const BigMovie = styled(motion.div)`
+    position: absolute;
+    width: 40vw;
+    height: 80vh;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+`;
+
 const rowVariants = {
     hidden: {
         x: window.outerWidth,
@@ -132,7 +150,9 @@ function Home() {
 
     // 내 위치가 이 route와 맞는지 알려주는 코드
     const bigMovieMatch = useRouteMatch<{ movieId: string }>("/movies/:movieId");
-    console.log(bigMovieMatch);
+    // console.log(bigMovieMatch);
+
+    const {scrollY} = useViewportScroll();
 
     const { data, isLoading } = useQuery<IGetMoviesResult>(
         ["movies", "nowPlaying"], getMovies
@@ -154,6 +174,7 @@ function Home() {
     const onBoxClicked = (movieId: number) => {
         history.push(`/movies/${movieId}`);
     };
+    const onOverlayClick = () => history.push("/");
 
     return (
         <Wrapper>{isLoading ? (
@@ -203,19 +224,17 @@ function Home() {
                 {/* 영화선택시 보이는 모달창 */}
                 <AnimatePresence>
                     {bigMovieMatch ? (
-                    <motion.div
-                        layoutId={bigMovieMatch.params.movieId}
-                        style={{
-                        position: "absolute",
-                        width: "40vw",
-                        height: "80vh",
-                        backgroundColor: "red",
-                        top: 50,
-                        left: 0,
-                        right: 0,
-                        margin: "0 auto",
-                        }}
-                    />
+                        <>
+                            <Overlay 
+                                onClick={onOverlayClick} 
+                                exit={{opacity: 0}}
+                                animate={{opacity: 1}} />
+                            <BigMovie
+                                style={{top: scrollY.get() + 100}} //모달 위치를 고정해주기 위해서 scrollY값 넣어줌
+                                layoutId={bigMovieMatch.params.movieId}
+                            />
+                        </>
+                    
                     ) : null}
                 </AnimatePresence>
             </>
