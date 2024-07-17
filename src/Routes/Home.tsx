@@ -5,10 +5,12 @@ import { makeImagePath } from "./utils";
 import { AnimatePresence, delay, motion } from "framer-motion";
 import { useState } from "react";
 import { hover } from "@testing-library/user-event/dist/hover";
+import { useHistory, useRouteMatch } from "react-router-dom";
 
 const Wrapper = styled.div`
     background-color: black;
     overflow-x: hidden;
+    padding-bottom: 200px;
 `;
 
 const Loader = styled.div`
@@ -60,6 +62,7 @@ const Box = styled(motion.div)<{bgPhoto:string}>`
     background-position: center center;
     height: 200px;
     font-size: 64px;
+    cursor: pointer;
     &:first-child {
         transform-origin: center left;
     }
@@ -124,10 +127,18 @@ const offset = 6; // 한페이지에 보여주고 싶은 영화 수
 
 
 function Home() {
+    //useHistory 훅을 사용하면 url을 왔다갔다 할 수 있음
+    const history = useHistory();
+
+    // 내 위치가 이 route와 맞는지 알려주는 코드
+    const bigMovieMatch = useRouteMatch<{ movieId: string }>("/movies/:movieId");
+    console.log(bigMovieMatch);
+
     const { data, isLoading } = useQuery<IGetMoviesResult>(
         ["movies", "nowPlaying"], getMovies
     );
     // console.log(data, isLoading);
+    
     const [index, setIndex] = useState(0);
     const [leaving, setLeaving] = useState(false);
     const increaseIndex = () => {
@@ -140,6 +151,9 @@ function Home() {
         }  
     };
     const toggleLeaving = () => setLeaving((prev) => !prev);
+    const onBoxClicked = (movieId: number) => {
+        history.push(`/movies/${movieId}`);
+    };
 
     return (
         <Wrapper>{isLoading ? (
@@ -165,23 +179,45 @@ function Home() {
                     >
                         {data?.results
                             .slice(1)
-                            .slice(offset*index, offset*index+offset)
+                            .slice(offset * index, offset * index + offset)
                             .map((movie) => (
-                                <Box 
+                                <Box
+                                    layoutId={movie.id + ""}
                                     key={movie.id}
                                     whileHover="hover"
                                     initial="normal"
                                     variants={boxVariants}
+                                    onClick={() => onBoxClicked(movie.id)}
+                                    transition={{ type: "tween" }}
                                     bgPhoto={makeImagePath(movie.backdrop_path, "w500")}
-                                >
+                                    >
                                     <Info variants={infoVariants}>
                                         <h4>{movie.title}</h4>
                                     </Info>
                                 </Box>
-                            ))}
+                            ))
+                        }
                     </Row>
                     </AnimatePresence>
                 </Slider>
+                {/* 영화선택시 보이는 모달창 */}
+                <AnimatePresence>
+                    {bigMovieMatch ? (
+                    <motion.div
+                        layoutId={bigMovieMatch.params.movieId}
+                        style={{
+                        position: "absolute",
+                        width: "40vw",
+                        height: "80vh",
+                        backgroundColor: "red",
+                        top: 50,
+                        left: 0,
+                        right: 0,
+                        margin: "0 auto",
+                        }}
+                    />
+                    ) : null}
+                </AnimatePresence>
             </>
         ) }</Wrapper>
     );

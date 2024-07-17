@@ -17,7 +17,7 @@ function App() {
           <Search />
         </Route>
         {/* 이 root경로를 젤 마지막에 넣어줘야함 */}
-        <Route path="/">
+        <Route path={["/", "/movies/:movieId"]}>
           <Home />
         </Route> 
       </Switch>

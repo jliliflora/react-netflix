@@ -110,6 +110,7 @@ const navVariants = {
 
 function Header() {
     const [searchOpen, setSearchOpen] = useState(false);
+    //match는 지금 그 URL에 있는지 아닌지를 판단하는 도구
     const homeMatch = useRouteMatch("/");
     const tvMatch = useRouteMatch("/tv");
     // console.log(homeMatch, tvMatch);
